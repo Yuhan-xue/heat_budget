@@ -1,0 +1,167 @@
+import gradio as gr
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import date
+import pandas as pd
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import netCDF4 as nc
+import marineHeatWaves as mhw
+
+
+data=np.load(r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\20230525HeatBudget&HeatWave_try.npz')
+data.files
+lon=np.array(data['lon'])
+lat=np.array(data['lat'])
+time=pd.date_range('2020-01-01','2022-12-31',freq='1D')
+
+ssts=np.load(r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\25_05_2023_oisstv2r01_NEP.npy')
+ssts_solid=np.nanmean(ssts,axis=-1)
+t = np.arange(date(1981,9,1).toordinal(),date(2022,12,31).toordinal()+1)
+time_mhw=pd.date_range('1981-09-01','2022-12-31',freq='1D')
+
+dataset=nc.Dataset(r'F:\OceanData\OISST_2022\oisst-avhrr-v02r01.20220101.nc')    # type: ignore
+lons=np.array(dataset.variables['lon'])
+lats=np.array(dataset.variables['lat'])
+lon_ind=(lons>=150)&(lons<=250)
+lat_ind=(lats>=20)&(lats<=60)
+Lon,Lat=np.meshgrid(lons[lon_ind],lats[lat_ind])
+ssta=np.load(r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\15052023_SSTA_2020_2023_NEP.npy')
+
+
+def plot_sea_surface_temperature(left_lon, right_lon, lower_lat, upper_lat, start_date, end_date):
+    global data
+    global lon
+    global lat
+    global time
+    global t
+    global time_mhw
+    global Lon
+    global Lat
+    
+    lonind=(lon>=left_lon)&(lon<=right_lon)
+    latind=(lat>=lower_lat)&(lat<=upper_lat)
+    timeind=(time>=pd.to_datetime(start_date))&(time<=pd.to_datetime(end_date))
+    # print(lonind.shape,latind.shape,timeind.shape)
+    # print(np.array(data['mltt'])[timeind,:,:].shape)
+    # print(np.array(data['mltt'])[timeind,:,:][:,latind,:].shape)
+    mltt=np.array(data['mltt'])[timeind,:,:][:,latind,:][:,:,lonind]/24
+    Q=np.array(data['Q'])[timeind,:,:][:,latind,:][:,:,lonind]
+    hadv=np.array(data['hadv'])[timeind,:,:][:,latind,:][:,:,lonind]
+    ovmix=mltt-Q-hadv
+    y0=np.zeros(shape=[time[timeind].shape[0]])
+    y1=np.copy(y0)
+    y1[:]=0.2
+    y0[:]=-0.2
+    plt.figure(figsize=[20,13])
+
+    ax=plt.subplot(3,1,1,projection=ccrs.PlateCarree(central_longitude=180))
+    plt.title(f'Mean SSTA From {start_date} To {end_date}')
+    timemhw_ind=(time_mhw>=pd.to_datetime(start_date))&(time_mhw<=pd.to_datetime(end_date))
+    ssta_n=np.nanmean(ssta[:,:,timeind],axis=-1)
+    ma=int(np.nanmax(np.abs(ssta_n)))
+    c=ax.contourf(Lon,Lat,ssta_n,np.arange(-1*ma-0.5,ma+0.5+0.1,0.25),transform=ccrs.PlateCarree(central_longitude=0),cmap='RdBu_r')
+    plt.colorbar(c,ax=ax,orientation="horizontal",extend='both',shrink=0.4)
+    ax.set_xticks(range(150-180, 250-180+1, 15))
+    ax.set_yticks(range(20, 60+1, 5))
+    ax.set_xlim(150-180, 250-180)
+    ax.set_ylim(20, 60)
+    import matplotlib.patches as patches
+    rect = patches.Rectangle((left_lon-180, lower_lat),right_lon-left_lon, upper_lat-lower_lat, linewidth=2, edgecolor='k', facecolor='none')
+    ax.add_patch(rect)# 将矩形添加到ax中
+    lon_formatter = LongitudeFormatter(number_format='.0f',
+                                        degree_symbol='',
+                                        dateline_direction_label=True)
+    lat_formatter = LatitudeFormatter(number_format='.0f',
+                                        degree_symbol='')
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    
+    scale = '10m'
+    land = cfeature.NaturalEarthFeature(
+        'physical', 'land', scale, edgecolor='face', facecolor=cfeature.COLORS['land'])
+    ax.add_feature(land, facecolor='0.75')
+    ax.coastlines()
+    
+
+    plt.subplot(3,1,2)
+    datas=np.load(r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\25_05_2023_oisstv2r01_NEP.npy')[latind,:,:][:,lonind,:]
+    sst=np.nanmean(np.nanmean(datas,axis=0),axis=0)
+    mhws, clim = mhw.detect(t, sst)
+    plt.plot(time_mhw,sst-np.array(clim['seas']),label='SSTA')
+    plt.plot(time_mhw,np.array(clim['thresh'])-np.array(clim['seas']),label='Thresh-Clim')
+    ev = np.argmax(mhws['intensity_max']) # Find largest event
+    t1 = np.where(t==mhws['time_start'][0])[0][0]
+    t2 = np.where(t==mhws['time_end'][0])[0][0]
+    plt.fill_between(time_mhw[t1:t2+1], sst[t1:t2+1], clim['thresh'][t1:t2+1],color=(1,0.6,0.5),label='MHW')
+    plt.legend()
+    plt.axhline(y=0, color='r', linestyle='--')
+    for ev0 in range(1,mhws['n_events']):
+        t1 = np.where(t==mhws['time_start'][ev0])[0][0]
+        t2 = np.where(t==mhws['time_end'][ev0])[0][0]
+        plt.fill_between(time_mhw[t1:t2+1], (sst-np.array(clim['seas']))[t1:t2+1], (np.array(clim['thresh'])-np.array(clim['seas']))[t1:t2+1],color=(1,0.6,0.5))
+    plt.xlim(time[timeind][0],time[timeind][-1])
+    plt.ylabel('℃')
+    plt.ylim(int(np.nanmin((sst-np.array(clim['seas']))[timemhw_ind]))-1,int(np.nanmax((sst-np.array(clim['seas']))[timemhw_ind]))+1)
+
+    
+    
+    
+    plt.subplot(3,1,3)
+    plt.title('Heat Budget')
+    plt.plot(time[timeind],np.nanmean(np.nanmean(Q,axis=-1),axis=-1),label='Q')
+    plt.plot(time[timeind],np.nanmean(np.nanmean(mltt,axis=-1),axis=-1),label='MLTT')
+    plt.plot(time[timeind],np.nanmean(np.nanmean(hadv,axis=-1),axis=-1),label='HADV')
+    #pltsea of thieves Ocean.plot(time[:-1],np.nanmean(np.nanmean(ovmix1,axis=-1),axis=-1),label='ENT')
+    #plt.plot(time,np.nanmean(np.nanmean(ovmix2,axis=-1),axis=-1),label='MIX')
+    plt.plot(time[timeind],np.nanmean(np.nanmean(ovmix,axis=-1),axis=-1),label='OVMIX')
+    plt.legend()
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.fill_between(
+        time[timeind],
+        y0,
+        y1,
+        where=np.nanmean(np.nanmean(mltt, axis=-1), axis=-1) > 0,
+        alpha=0.1,
+        color='#840000',
+    )
+    plt.fill_between(
+        time[timeind],
+        y0,
+        y1,
+        where=np.nanmean(np.nanmean(mltt, axis=-1), axis=-1) < 0,
+        alpha=0.1,
+        color='#10457e',
+    )
+    plt.ylim(-0.2,0.2)
+    plt.xlim(time[timeind][0],time[timeind][-1])
+    plt.ylabel('[℃/Days]')
+    plt.xlabel('Time[Days]')
+    ax.grid()
+    plt.savefig(r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\png.png')
+    print(left_lon, right_lon, lower_lat, upper_lat, start_date, end_date)
+
+    # 返回图片路径供Gradio使用
+    return r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\png.png'
+# plot_sea_surface_temperature(150+60, 250-30, 30, 40, '20210601', '20220901')
+
+
+
+# 创建Gradio接口
+iface = gr.Interface(
+    fn=plot_sea_surface_temperature,
+    inputs=[
+        gr.inputs.Slider(150, 250, 1, label='左经度 150~250',default=200.),
+        gr.inputs.Slider(150, 250, 1, label='右经度 150~250',default=225.),
+        gr.inputs.Slider(20, 60, 1, label='下纬度 20~60',default=40.),
+        gr.inputs.Slider(20, 60, 1, label='上纬度 20~60',default=50.),
+        gr.inputs.Textbox(label="开始时间 2020~2022",default='20210101'),
+        gr.inputs.Textbox(label="结束时间 2020~2022",default='20211231')
+    ],
+    outputs=gr.outputs.Image(type="filepath", label="Developed by Han 25/05/2023"),
+    layout="vertical",
+    title="NEP HeatWave & HeatBudget"
+)
+# 启动Gradio应用
+iface.launch(server_name="0.0.0.0",server_port=8080,favicon_path=r"D:\OneDrive\图片\ico\sunrise-60 wave skinny.svg")

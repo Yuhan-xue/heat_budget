@@ -1,0 +1,13 @@
+<mxfile host="65bd71144e">
+    <diagram id="yfdv0XLJsRRjO-Sh-AVq" name="第 1 页">
+        <mxGraphModel dx="1418" dy="787" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="&lt;h1&gt;&lt;font color=&quot;#000000&quot;&gt;CSIRO&amp;nbsp; Bluelink&lt;/font&gt;&lt;/h1&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="1">
+                    <mxGeometry x="10" y="150" width="230" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

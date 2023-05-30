@@ -1,0 +1,1 @@
+ssh -t -t yuhanxue@10.130.2.222 -L 20260:localhost:20260 ssh 10.10.102.1 -L 20260:localhost:20260
