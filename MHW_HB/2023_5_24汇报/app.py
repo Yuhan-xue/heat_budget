@@ -21,7 +21,7 @@ ssts_solid=np.nanmean(ssts,axis=-1)
 t = np.arange(date(1981,9,1).toordinal(),date(2022,12,31).toordinal()+1)
 time_mhw=pd.date_range('1981-09-01','2022-12-31',freq='1D')
 
-dataset=nc.Dataset(r'F:\OceanData\OISST_2022\oisst-avhrr-v02r01.20220101.nc')    # type: ignore
+dataset=nc.Dataset(r'E:\OceanData\OISST_2022\oisst-avhrr-v02r01.20220101.nc')    # type: ignore
 lons=np.array(dataset.variables['lon'])
 lats=np.array(dataset.variables['lat'])
 lon_ind=(lons>=150)&(lons<=250)
@@ -240,7 +240,7 @@ def plot_sea_surface_temperature(left_lon, right_lon, lower_lat, upper_lat, star
     # 返回图片路径供Gradio使用
     return r'D:\OneDrive\heat_budget\MHW_HB\2023_5_24汇报\png.png'
 # plot_sea_surface_temperature(150+60, 250-30, 30, 40, '20210601', '20220901')
-
+plot_sea_surface_temperature(190, 250-25, 35, 45, '20210701', '20211031')
 
 
 # 创建Gradio接口
@@ -259,4 +259,4 @@ iface = gr.Interface(
     title="NEP HeatWave & HeatBudget"
 )
 # 启动Gradio应用
-iface.launch(server_name="0.0.0.0",server_port=8081,favicon_path=r"D:\OneDrive\图片\ico\sunrise-60 wave skinny.svg")
+iface.launch(share=True,server_name="0.0.0.0",server_port=8081,favicon_path=r"D:\OneDrive\图片\ico\sunrise-60 wave skinny.svg")
