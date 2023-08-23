@@ -100,7 +100,159 @@
    | -np $nprocs              | 指定总共跑几个核，也是由调度器分配，默 认是均分 |
    | $EXEC                    | 你的应用可执行文件，后面跟输入文件等            |
 
-   
+   更多请参考[ Quick start — Open MPI 5.0.x documentation (open-mpi.org)](https://docs.open-mpi.org/en/v5.0.x/quickstart.html)
+
+#### PBS（这个要掌握@YHC
+
+1. 命令行操作
+
+   - qsub 用于提交脚本作业（见第二部分）（🌟）
+
+   - qstat 用于查询已经提交的作业（🌟）
+
+     ```shell
+     qstat [-f][-a][-i][-n][-s][-R][-Q][-q][-B][-u]
+     ```
+
+     | 参数       | 说明                                                         |
+     | :--------- | :----------------------------------------------------------- |
+     | -f         | jobid 列出指定作业的详细信息（太详细了，你基本读不懂）       |
+     | -a         | 列出自己所有作业                                             |
+     | -i         | 列出不在运行的作业                                           |
+     | -n         | 列出分配给此作业的结点                                       |
+     | -s         | 列出队列管理员与 scheduler 所提供的建议                      |
+     | -R         | 列出磁盘预留信息                                             |
+     | -Q         | 操作符是 destination id，指明请求的是队列状态（就是把还在排队的任务列出来） |
+     | -q         | 列出队列状态，并以 alternative 形式显示                      |
+     | -au userid | 列出指定用户的所有作业                                       |
+     | -B         | 列出 PBS Server 信息                                         |
+     | -r         | 列出所有正在运行的作业                                       |
+     | -Qf queue  | 列出指定队列的信息                                           |
+     | -u         | 若操作符为作业号，则列出其状态。若操作符为 destination id， 则列出运行在其上的属于 user_list 中用户的作业状态。 |
+
+   - qdel ：取消作业（🌟）
+
+     ```shell
+     qdel [-W 间隔时间] 作业id
+     ```
+
+      **ADD：**作业的状态（queue）代码有
+
+     | 代码 | 状态       |
+     | :--- | :--------- |
+     | C    | 作业结束   |
+     | Q    | 作业排队中 |
+     | R    | 作业运行中 |
+
+   - qhold：挂起作业(仅了解，不常用)
+
+     使用 qhold 命令可以挂起作业，使其不被调度执行；
+
+   - qrls：释放挂起的作业(仅了解，不常用)
+
+     使用 qrls 命令可以将挂起的作业释放，使其可以被调度执行；
+
+   - qrerun：重新运行作业(仅了解，不常用)
+
+   - qmove：将作业移动到另一个队列(仅了解，不常用)
+
+   - qalter： 更改作业资源属性(仅了解，不常用)
+
+2. 编写PBS脚本并用qsub提交
+
+   举例说明，以下是文件`geta.pbs`内容
+
+   ```shell
+   #pbs.sh
+   #!/bin/bash
+   #PBS -N geta
+   #PBS -o /lustre/home/yuhanxue/InfoOut/myo3.out
+   #PBS -e /lustre/home/yuhanxue/InfoOut/mye3.out
+   #PBS -l nodes=1:ppn=4
+   #PBS -q com
+   #PBS -V
+   #PBS -S /bin/bash
+   #PBS -l walltime=1000:00:00
+   echo "-------------------------------------"
+   cd /lustre/home/yuhanxue/code
+   id=`echo $PBS_JOBID|awk -F. '{print $1}'`
+   python -V
+   echo "The Jobbed is $id"
+   NP=`cat $PBS_NODEFILE|wc -l`
+   echo "The np is $NP"
+   python geta.py
+   ```
+
+​	
+
+- `#PBS -N geta`: 该行为作业指定了一个名字"geta"。
+
+- `#PBS -o /lustre/home/yuhanxue/InfoOut/myo3.out`: 指定标准输出文件的位置和名称。作业运行的输出将被写入此文件。
+
+- `#PBS -e /lustre/home/yuhanxue/InfoOut/mye3.out`: 指定错误输出文件的位置和名称。作业运行的错误信息将被写入此文件。
+
+- `#PBS -l nodes=1:ppn=4`: 要求PBS系统分配一个节点，并在该节点上提供4个处理器。
+
+- `#PBS -q com`: 指定作业在"com"队列中运行。
+
+- `#PBS -V`: 这个指令会导入用户的环境变量到作业。
+
+- `#PBS -S /bin/bash`: 设置作业的shell为/bin/bash。
+
+- `#PBS -l walltime=1000:00:00`: 设置作业的最大运行时间为1000小时。
+
+- `cd /lustre/home/yuhanxue/code`: 切换到存放你的代码的目录。
+
+- ``id=`echo $PBS_JOBID|awk -F. '{print $1}'``: 提取PBS作业ID的前部分，保存到变量id中。
+
+- `python -V`: 显示运行作业的python的版本。
+
+- `echo "The Jobbed is $id"`: 打印作业的ID到输出文件。
+
+- `NP=`cat $PBS_NODEFILE|wc -l`: 计算并存储PBS节点文件中的行数，这通常对应了作业中使用的处理器(core)的数量。
+
+- `echo "The np is $NP"`: 打印作业中使用的处理器的数量。
+
+- `python geta.py`: 运行一份名为geta.py的Python脚本。
+
+  | 参数                             | 含义                                                   |
+  | :------------------------------- | :----------------------------------------------------- |
+  | -N 名称                          | 定义作业的名称                                         |
+  | -l walltime=时长                 | 定义作业的最长运行时间                                 |
+  | -l nodes=节点数:ppn=每节点进程数 | 定义作业所需的资源                                     |
+  | -j oe                            | 定向标准错误输出流和标准输出流到同一文件               |
+  | -o 文件路径                      | 将标准输出流重定向到指定的文件                         |
+  | -e 文件路径                      | 将标准错误输出流重定向到指定的文件                     |
+  | -V                               | 将环境变量传递到作业的执行环境                         |
+  | -q 队列名称                      | 指定提交作业到哪个队列                                 |
+  | -r y/n                           | 如果作业被挂起，是否可以重新运行                       |
+  | -f                               | 强制提交，即使作业所请求的资源比所在队列的最大限制要大 |
+  | -p 优先级                        | 指定作业的优先级                                       |
+  | -a 预定时间        | 表示在预定时间后才能运行的作业                               |
+  | -c 检查点选项      | 表示作业在运行中可以进行检查点操作                           |
+  | -C 检查点目录      | 检查点文件的保存目录                                         |
+  | -d 作业运行目录    | 作业启动的初始目录                                           |
+  | -hold_jid 作业列表 | 依赖指定作业列表中的所有作业都已经成功完成后才能运行         |
+  | -S 解释程序路径    | 执行作业的解释程序路径，如 /bin/sh, /bin/csh, /bin/bash      |
+  | -u 用户名          | 指定执行该作业的用户名                                       |
+  | -W 参数            | 可用于指定一些附加参数                                       |
+  | -h                 | 提交作业后，作业处于 hold 状态，即不立即执行，需要用 qrls 命令解除 hold 状态后才能执行 |
+  | -k o,e,oe,n        | 标准输出、标准错误输出是否保存和路径                         |
+  | -t 数组索引        | 提交任务数组，数组索引可以是单一值，如1，多个值，如1,2,3，或范围，如1-10 |
+  | -v 变量列表        | 通过 qsub 提交作业时，将指定的环境变量值传给作业             |
+  | -z                 | 不要创建未使用的输出文件                                     |
+
+  PBS脚本组成实例
+
+  ```mermaid
+  flowchart TB
+      subgraph PBS脚本组成
+      PBS参数
+      需要执行的计算
+      end
+  ```
+
+  
 
 ### Han常用的Jupyter 云计算
 
