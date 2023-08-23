@@ -4,9 +4,9 @@
 
 *Last Updated:2023/08/23*
 
+[toc]
+
 ## 基础教学
-
-
 
 ### 首先确定自己所处的网路环境  
 
@@ -158,7 +158,7 @@
 
    - qalter： 更改作业资源属性(仅了解，不常用)
 
-2. 编写PBS脚本并用qsub提交
+2. 编写PBS脚本并用qsub提交（🌟）
 
    举例说明，以下是文件`geta.pbs`内容
 
@@ -215,44 +215,186 @@
 
 - `python geta.py`: 运行一份名为geta.py的Python脚本。
 
-  | 参数                             | 含义                                                   |
-  | :------------------------------- | :----------------------------------------------------- |
-  | -N 名称                          | 定义作业的名称                                         |
-  | -l walltime=时长                 | 定义作业的最长运行时间                                 |
-  | -l nodes=节点数:ppn=每节点进程数 | 定义作业所需的资源                                     |
-  | -j oe                            | 定向标准错误输出流和标准输出流到同一文件               |
-  | -o 文件路径                      | 将标准输出流重定向到指定的文件                         |
-  | -e 文件路径                      | 将标准错误输出流重定向到指定的文件                     |
-  | -V                               | 将环境变量传递到作业的执行环境                         |
-  | -q 队列名称                      | 指定提交作业到哪个队列                                 |
-  | -r y/n                           | 如果作业被挂起，是否可以重新运行                       |
-  | -f                               | 强制提交，即使作业所请求的资源比所在队列的最大限制要大 |
-  | -p 优先级                        | 指定作业的优先级                                       |
-  | -a 预定时间        | 表示在预定时间后才能运行的作业                               |
-  | -c 检查点选项      | 表示作业在运行中可以进行检查点操作                           |
-  | -C 检查点目录      | 检查点文件的保存目录                                         |
-  | -d 作业运行目录    | 作业启动的初始目录                                           |
-  | -hold_jid 作业列表 | 依赖指定作业列表中的所有作业都已经成功完成后才能运行         |
-  | -S 解释程序路径    | 执行作业的解释程序路径，如 /bin/sh, /bin/csh, /bin/bash      |
-  | -u 用户名          | 指定执行该作业的用户名                                       |
-  | -W 参数            | 可用于指定一些附加参数                                       |
-  | -h                 | 提交作业后，作业处于 hold 状态，即不立即执行，需要用 qrls 命令解除 hold 状态后才能执行 |
-  | -k o,e,oe,n        | 标准输出、标准错误输出是否保存和路径                         |
-  | -t 数组索引        | 提交任务数组，数组索引可以是单一值，如1，多个值，如1,2,3，或范围，如1-10 |
-  | -v 变量列表        | 通过 qsub 提交作业时，将指定的环境变量值传给作业             |
-  | -z                 | 不要创建未使用的输出文件                                     |
+  执行这个文件：qsub geta.pbs
 
-  PBS脚本组成实例
+以下是完整的PBS脚本参数
 
-  ```mermaid
-  flowchart TB
-      subgraph PBS脚本组成
-      PBS参数
-      需要执行的计算
-      end
-  ```
+| 参数                             | 含义                                                   |
+| :------------------------------- | :----------------------------------------------------- |
+| -N 名称                          | 定义作业的名称                                         |
+| -l walltime=时长                 | 定义作业的最长运行时间                                 |
+| -l nodes=节点数:ppn=每节点进程数 | 定义作业所需的资源                                     |
+| -j oe                            | 定向标准错误输出流和标准输出流到同一文件               |
+| -o 文件路径                      | 将标准输出流重定向到指定的文件                         |
+| -e 文件路径                      | 将标准错误输出流重定向到指定的文件                     |
+| -V                               | 将环境变量传递到作业的执行环境                         |
+| -q 队列名称                      | 指定提交作业到哪个队列                                 |
+| -r y/n                           | 如果作业被挂起，是否可以重新运行                       |
+| -f                               | 强制提交，即使作业所请求的资源比所在队列的最大限制要大 |
+| -p 优先级                        | 指定作业的优先级                                       |
+| -a 预定时间        | 表示在预定时间后才能运行的作业                               |
+| -c 检查点选项      | 表示作业在运行中可以进行检查点操作                           |
+| -C 检查点目录      | 检查点文件的保存目录                                         |
+| -d 作业运行目录    | 作业启动的初始目录                                           |
+| -hold_jid 作业列表 | 依赖指定作业列表中的所有作业都已经成功完成后才能运行         |
+| -S 解释程序路径    | 执行作业的解释程序路径，如 /bin/sh, /bin/csh, /bin/bash      |
+| -u 用户名          | 指定执行该作业的用户名                                       |
+| -W 参数            | 可用于指定一些附加参数                                       |
+| -h                 | 提交作业后，作业处于 hold 状态，即不立即执行，需要用 qrls 命令解除 hold 状态后才能执行 |
+| -k o,e,oe,n        | 标准输出、标准错误输出是否保存和路径                         |
+| -t 数组索引        | 提交任务数组，数组索引可以是单一值，如1，多个值，如1,2,3，或范围，如1-10 |
+| -v 变量列表        | 通过 qsub 提交作业时，将指定的环境变量值传给作业             |
+| -z                 | 不要创建未使用的输出文件                                     |
 
-  
+PBS脚本组成实例
 
-### Han常用的Jupyter 云计算
+```mermaid
+flowchart TB
+    subgraph PBS脚本组成
+    PBS参数
+    需要执行的计算
+    end
+```
 
+
+
+### 计算实例——Han常用的Jupyter 云计算
+
+#### 完整全流程，适用于长时间计算
+
+1. 思路：
+
+   ```mermaid
+   flowchart TB
+   subgraph 集群
+   	subgraph 登陆节点
+      	 提交PBS-Jupyter任务
+      	 登陆节点-SSH流量转发
+       end
+       
+       subgraph 计算节点
+      	 运行Jupyter-lab
+      	 计算节点-SSH流量转发
+       end  
+   end
+   
+   subgraph 本地计算机
+   本地计算机-SSH流量转发
+   使用VScode连Jupyter服务器进行编写
+   end
+   
+   提交PBS-Jupyter任务 --> 运行Jupyter-lab --> 计算节点-SSH流量转发 --> 登陆节点-SSH流量转发 --> 本地计算机-SSH流量转发 --> 使用VScode连Jupyter服务器进行编写
+   ```
+
+   
+
+   拆解工作流可得到三个任务：
+
+   - 使用 PBS脚本提交Jupyter任务
+
+   - 多层ssh流量转发
+
+   - 本地vscode连接
+
+   现一一说明
+
+2. 使用 PBS脚本提交Jupyter任务`jupyter.pbs`
+
+   ```shell
+   #pbs.sh
+   #!/bin/bash
+   #PBS -N jupyter
+   #PBS -o /lustre/home/yuhanxue/InfoOut/jupyte.out
+   #PBS -e /lustre/home/yuhanxue/InfoOut/jupyter.out
+   #PBS -l nodes=1:ppn=8
+   #PBS -q fat
+   #PBS -V
+   #PBS -S /bin/bash
+   #PBS -l walltime=1000:00:00
+   echo "-------------------------------------"
+   cd /lustre/home/yuhanxue/code/jupyter
+   conda activate pynb
+   id=`echo $PBS_JOBID|awk -F. '{print $1}'`
+   python -V
+   echo "The Jobbed is $id"
+   NP=`cat $PBS_NODEFILE|wc -l`
+   echo "The np is $NP"
+   ip addr | awk '/^[0-9]+: / {}; /inet.*global/ {print gensub(/(.*)\/(.*)/, "\\1", "g", $2)}'
+   
+   jupyter-lab --no-browser --port=20260
+   ```
+
+   - `ip addr | awk '/^[0-9]+: / {}; /inet.*global/ {print gensub(/(.*)\/(.*)/, "\\1", "g", $2)}'`是为了输出网络信息，便于之后ssh流量转发
+
+   - `jupyter-lab --no-browser --port=20260`无浏览器启动jupyter lab并运行在20260端口(你最好换个差远点的的端口，以免和我撞车)
+
+     运行命令`qsub jupyter.pbs`，在`qstat`查询，查询`queue`一栏为`R`即运行成功
+
+3. SSH多层流量转发
+
+   - 首先先查询输出文件找到计算节点IP地址（以10.10开头）
+
+     ![日志](./assets/image-20230823152739669.png)
+
+     - 在这里就可以看到最后一次日志的计算IP是10.10.102.6
+     - 在本地计算机的termianl上（Powershell）使用
+
+     ```powershell
+     ssh -t -t $USER@10.130.2.222 -L $PORT:localhost:$PORT ssh $IP -L $PORT:localhost:$PORT
+     ```
+
+     - `$USER`集群用户账户名
+     - `$IP`上一步计算节点的IP地址
+     - `$PORT`自定的Jupyter运行端口
+
+     在我们这种情况即为
+
+     ```
+     ssh -t -t yuhanxue@10.130.2.222 -L 20260:localhost:20260 ssh 10.10.102.6 -L 20260:localhost:20260
+     ```
+
+     运行会让你输密码，出现shell即为成功，浏览器打开`http://localhost:20260/`试试能否打开
+
+4. VScode连接
+
+   - VS code 笔记本支持远程Jupyter，用VS code打开你需要用HPC运行的笔记本
+
+     ![image-20230823154251325](./assets/image-20230823154251325.png)
+
+   - 选输入URL，输入`http://localhost:20260/`，稍等之后再选择Jupyter内核即可
+
+     ![image-20230823155637820](./assets/image-20230823155637820.png)
+
+5. 关闭任务（🌟）一定要记得，不然就花钱如流水了（悲
+
+   1. qstat 查找任务ID
+   2. qdel 任务ID
+   3. qstat 确定任务关闭（不显示或`queue`为`C`）即可
+   4. 在登录节点运行`pkill -u $USER` 其中`$USER`换为自己的用户名，这个命令用来kill自己在登录节点的所有进程
+
+#### 便捷快速连接Jupyter（利用集群调试节点），适用于短时间调试和计算
+
+集群提供免申请的调试节点，可以直接远程连接这个节点（fat01，10.10.102.1）进行计算
+
+1. 在本地终端执行（SSH流量转发）
+
+   ```shell
+   ssh -t -t $USER@10.130.2.222 -L 20260:localhost:20260 ssh 10.10.102.1 -L 20260:localhost:20260
+   ```
+
+   - `$USER`集群用户账户名
+
+2. 进去之后执行（启动Jupyter）
+
+   ```shell
+   conda activate $CONDA_PYENV;jupyter-lab --no-browser --port=20260
+   ```
+
+   - `$CONDA_PYENV`为需要的conda环境名，账户`yanghaocheng`中我安装的主要计算环境名为`han`，即YHC想用应该使用：
+
+   ```shell
+   conda activate han;jupyter-lab --no-browser --port=20260
+   ```
+
+3. 重复上面`VScode连接`一步，进行代码调试。
+4. 如果需要暂停按下`Ctrl+C`，然后输入`pkill -u $USER` 其中`$USER`换为自己的用户名
