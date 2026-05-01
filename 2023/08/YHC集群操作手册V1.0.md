@@ -334,7 +334,7 @@ flowchart TB
 
    - 首先先查询输出文件找到计算节点IP地址（以10.10开头）
 
-     ![日志](./assets/image-20230823152739669.png)
+     ![日志](http://pic.hxlab.tech/i/2023/08/28/64ecab2a9e4f5.png)
 
      - 在这里就可以看到最后一次日志的计算IP是10.10.102.6
      - 在本地计算机的termianl上（Powershell）使用
@@ -359,11 +359,11 @@ flowchart TB
 
    - VS code 笔记本支持远程Jupyter，用VS code打开你需要用HPC运行的笔记本
 
-     ![image-20230823154251325](./assets/image-20230823154251325.png)
+     ![image-20230823154251325](http://pic.hxlab.tech/i/2023/08/28/64ecab34eb51b.png)
 
    - 选输入URL，输入`http://localhost:20260/`，稍等之后再选择Jupyter内核即可
 
-     ![image-20230823155637820](./assets/image-20230823155637820.png)
+     ![image-20230823155637820](http://pic.hxlab.tech/i/2023/08/28/64ecab377d748.png)
 
 5. 关闭任务（🌟）一定要记得，不然就花钱如流水了（悲
 
